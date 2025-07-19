@@ -1,0 +1,194 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* SoulRoom Design System - Warm, intimate, nature-inspired */
+    --background: 24 15% 8%;
+    --foreground: 35 25% 92%;
+
+    --card: 20 12% 12%;
+    --card-foreground: 35 25% 92%;
+
+    --popover: 20 12% 12%;
+    --popover-foreground: 35 25% 92%;
+
+    /* Warm sunset/candlelight primary */
+    --primary: 25 95% 65%;
+    --primary-foreground: 20 12% 12%;
+    --primary-glow: 25 95% 75%;
+
+    /* Soft nature secondary */
+    --secondary: 140 35% 45%;
+    --secondary-foreground: 35 25% 92%;
+
+    /* Muted earth tones */
+    --muted: 20 8% 18%;
+    --muted-foreground: 35 15% 65%;
+
+    /* Warm accent */
+    --accent: 35 85% 70%;
+    --accent-foreground: 20 12% 12%;
+
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 35 25% 92%;
+
+    --border: 20 8% 22%;
+    --input: 20 8% 22%;
+    --ring: 25 95% 65%;
+
+    /* Gradients for soulful atmosphere */
+    --gradient-sunset: linear-gradient(135deg, hsl(25, 95%, 65%), hsl(35, 85%, 70%), hsl(45, 80%, 75%));
+    --gradient-candle: linear-gradient(180deg, hsl(35, 85%, 70%), hsl(25, 95%, 65%));
+    --gradient-nature: linear-gradient(135deg, hsl(140, 35%, 45%), hsl(160, 40%, 50%));
+    --gradient-soul: linear-gradient(135deg, hsl(280, 60%, 30%), hsl(25, 95%, 65%));
+    
+    /* Shadows with warm glow */
+    --shadow-warm: 0 8px 32px hsl(25 95% 65% / 0.2);
+    --shadow-candle: 0 0 30px hsl(35 85% 70% / 0.4);
+    --shadow-nature: 0 4px 20px hsl(140 35% 45% / 0.3);
+    
+    /* Animations */
+    --transition-soul: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --animation-float: float 3s ease-in-out infinite;
+    --animation-glow: glow 2s ease-in-out infinite alternate;
+
+    --radius: 1rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background: var(--gradient-soul);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  /* Soul-inspired animations */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  @keyframes glow {
+    0% { box-shadow: var(--shadow-warm); }
+    100% { box-shadow: var(--shadow-candle); }
+  }
+  
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  /* Thought bubble animation */
+  @keyframes thought-appear {
+    0% { opacity: 0; transform: translateY(20px) scale(0.9); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  
+  /* Utility classes for SoulRoom */
+  .soul-gradient {
+    background: var(--gradient-soul);
+  }
+  
+  .sunset-gradient {
+    background: var(--gradient-sunset);
+  }
+  
+  .candle-gradient {
+    background: var(--gradient-candle);
+  }
+  
+  .nature-gradient {
+    background: var(--gradient-nature);
+  }
+  
+  .warm-glow {
+    box-shadow: var(--shadow-warm);
+  }
+  
+  .candle-glow {
+    box-shadow: var(--shadow-candle);
+  }
+  
+  .float-animation {
+    animation: var(--animation-float);
+  }
+  
+  .glow-animation {
+    animation: var(--animation-glow);
+  }
+  
+  .soul-transition {
+    transition: var(--transition-soul);
+  }
+  
+  .thought-appear {
+    animation: thought-appear 0.6s ease-out;
+  }
+}
