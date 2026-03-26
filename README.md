@@ -1,65 +1,72 @@
-# [cite_start]DeepShield AI - AI-Based Deepfake Detection Application [cite: 7, 58]
+# DeepShield AI - AI-Based Deepfake Detection Application
 
-[cite_start]DeepShield AI is a full-stack, AI-based deepfake detection application designed to identify manipulated media and provide evidence-backed verification[cite: 21]. [cite_start]By bridging an interactive, forensic-style React frontend [cite: 40] [cite_start]with a powerful Python backend[cite: 42], it allows users to upload videos and instantly verify their structural authenticity against neural manipulation.
+DeepShield AI is a full-stack, AI-based deepfake detection application designed to identify manipulated media and provide evidence-backed verification. By bridging an interactive, forensic-style React frontend with a powerful Python FastAPI backend, it allows users to upload videos and instantly verify their structural authenticity against neural manipulation.
 
-[cite_start]At its core, the system utilizes state-of-the-art Vision Transformers (ViT) [cite: 43] [cite_start]to exploit self-attention mechanisms [cite: 80][cite_start], moving beyond simple pixel-level artifact detection to identify global structural inconsistencies and "structural lies" in high-resolution generated videos[cite: 80, 85].
+At its core, the system utilizes state-of-the-art Vision Transformers (ViT) to exploit self-attention mechanisms, moving beyond simple pixel-level artifact detection to identify global structural inconsistencies and "structural lies" in high-resolution generated videos.
 
 ## 🚀 Core Features
 
 ### Machine Learning Engine (Backend)
-* [cite_start]**Vision Transformer (ViT) Architecture:** Utilizes a ViT-Base backbone [cite: 138, 151] [cite_start]with 16x16 patch embeddings to transform spatial data into a sequence for the Transformer[cite: 137].
-* [cite_start]**Automated Preprocessing Pipeline:** Extracts frames from videos and uses MTCNN/Mediapipe to detect and crop facial regions for standardized input[cite: 44, 136].
-* [cite_start]**High-Fidelity Detection:** Built to detect high-resolution diffusion signatures from advanced tools like Sora and Veo[cite: 79, 149]. [cite_start]Designed to train on datasets like FaceForensics++ and Celeb-DF[cite: 86, 135].
-* [cite_start]**FastAPI/Flask Integration:** Provides prediction scores via Python backend endpoints[cite: 42].
+* **Vision Transformer (ViT) Architecture:** Utilizes a ViT-Base backbone with 16x16 patch embeddings to transform spatial data into a sequence for the Transformer.
+* **Automated Preprocessing Pipeline:** Extracts frames from videos and uses Mediapipe to detect and crop facial regions for standardized input.
+* **High-Fidelity Detection:** Built to detect high-resolution diffusion signatures from advanced tools like Sora and Veo. Designed to train on datasets like FaceForensics++ and Celeb-DF.
+* **FastAPI Integration:** Provides real-time prediction scores and frame-by-frame confidence metrics via a Python REST API backend.
 
 ### Forensic Dashboard (Frontend)
-* [cite_start]**Interactive Cybersecurity Interface:** A sleek React web portal [cite: 35, 40] that guides users through the analysis process.
-* [cite_start]**Explainable AI (XAI):** Generates heatmaps to show exactly which facial patches drove the "fake" decision[cite: 148].
-* [cite_start]**Detailed Reporting:** Generates confidence scores and highlights suspicious frames using timeline analysis[cite: 24].
+* **Interactive Cybersecurity Interface:** A sleek React web portal with glassmorphism design that guides users through the analysis process.
+* **Live Telemetry Charting:** Generates an interactive frame-by-frame confidence graph (via Recharts) displaying exactly when the AI detects manipulation.
+* **Detailed Reporting:** Generates overall confidence scores and final verdicts in a beautiful, hacker-themed dashboard.
 
 ## 🏗️ System Design
 
 The application follows a structured pipeline:
-1. [cite_start]**Input:** User uploads a video or image file for analysis[cite: 144].
-2. [cite_start]**Preprocessing Engine:** Extracts frames and detects/crops the face[cite: 142].
-3. [cite_start]**ViT Encoder:** The facial data is broken into patches, projected linearly, and processed through self-attention layers[cite: 142].
-4. [cite_start]**Classification Head:** A fully connected layer outputs a Real/Fake score[cite: 142].
-5. [cite_start]**Output:** The React dashboard renders the prediction score and XAI explanation heatmap[cite: 144].
+1. **Input:** User uploads an MP4, AVI, or MOV video file for analysis via the React frontend.
+2. **Preprocessing Engine (Backend):** Extracts frames sequentially and uses Mediapipe (`blaze_face_short_range.tflite`) to detect and crop the face.
+3. **ViT Encoder:** The facial data is broken into patches, projected linearly, and processed through self-attention layers using PyTorch.
+4. **Classification Head:** A fully connected layer evaluates the patches and outputs a Real/Fake score for each sampled frame.
+5. **Output:** The React dashboard renders the overall prediction score, confidence gauge, and a frame-by-frame telemetry graph.
 
 ## 🛠️ Technology Stack
 
 **Frontend:**
-* [cite_start]React [cite: 40]
-* HTML/CSS (Custom Glassmorphism & Enterprise UI)
+* React.js (Create React App)
+* Lucide React (Icons) & Recharts (Telemetry Graphing)
+* Three.js (Hologram Visuals)
+* Vanilla CSS (Custom Glassmorphism Theme)
 
 **Backend & AI:**
-* [cite_start]Python (FastAPI / Flask) [cite: 42]
-* [cite_start]PyTorch (Vision Transformers) [cite: 43]
-* [cite_start]OpenCV, Mediapipe, FFmpeg (Computer Vision & Processing) [cite: 44]
-* [cite_start]NumPy, Pandas, Scikit-learn (Data handling and metrics) [cite: 47]
+* Python (FastAPI, Uvicorn)
+* PyTorch & Torchvision (Vision Transformers)
+* OpenCV & Mediapipe (Computer Vision & Face Detection)
+* NumPy & Matplotlib (Data handling)
 
 ## ⚙️ Installation & Usage
 
 ### 1. Backend Setup
-\`\`\`bash
-# Clone the repository
+```bash
+# Clone the repository and navigate to backend
 git clone https://github.com/YOUR_USERNAME/DeepShield-AI.git
 cd DeepShield-AI/backend
 
-# Create and activate a virtual environment
+# Create and activate a virtual environment (optional but recommended)
 python -m venv venv
-source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+# Windows: venv\Scripts\activate
+# Mac/Linux: source venv/bin/activate
 
-# Install dependencies
-pip install torch torchvision torchaudio opencv-python mediapipe timm fastapi uvicorn
+# Install dependencies (CRITICAL: numpy<2 is required for PyTorch compatibility)
+pip install -r requirements.txt
+pip install "numpy<2"
 
-# Ensure your trained model weights (vit_deepfake_model.pth) are placed in the correct directory
-# Start the FastAPI server
-uvicorn main:app --reload
-\`\`\`
+# Ensure your model files are present in the backend folder:
+# 1. fine_tuned_v4.pth
+# 2. blaze_face_short_range.tflite
+
+# Start the FastAPI server (running on port 8001 to prevent conflicts)
+python -m uvicorn app:app --host 127.0.0.1 --port 8001
+```
 
 ### 2. Frontend Setup
-\`\`\`bash
+```bash
 # Open a new terminal and navigate to the frontend directory
 cd ../frontend
 
@@ -68,24 +75,26 @@ npm install
 
 # Start the React development server
 npm start
-\`\`\`
+```
+
+The frontend will start at `http://localhost:3000` and automatically connect to the backend at `http://127.0.0.1:8001`.
 
 ## 🚧 Future Scope
 
-* [cite_start]**Multimodal Detection:** Integrating audio analysis to catch lip-sync and voice mismatches[cite: 162].
-* [cite_start]**Temporal Transformers:** Using ViViT to ensure consistency across the entire video sequence[cite: 163].
-* [cite_start]**Mobile Optimization:** Lightening the ViT model for real-time verification on smartphones[cite: 165].
-* [cite_start]**Automated PDF Reporting:** Enhancing the system to include automated PDF/HTML reporting and metadata extraction [cite: 26] [cite_start]using tools like ReportLab or WeasyPrint[cite: 45].
+* **Multimodal Detection:** Integrating audio analysis to catch lip-sync and voice mismatches.
+* **Temporal Transformers:** Using ViViT to ensure consistency across the entire video sequence.
+* **Mobile Optimization:** Lightening the ViT model for real-time verification on smartphones.
+* **Automated PDF Reporting:** Enhancing the system to include automated PDF/HTML reporting and metadata extraction.
 
 ## 🎓 Academic Context
 
-[cite_start]This project (CSD 334 MINI PROJECT) [cite: 6] [cite_start]was developed as an application-based project [cite: 30] [cite_start]at **SCMS School of Engineering and Technology (SSET)**, Cochin, Department of Computer Science and Engineering[cite: 4, 56, 57].
+This project (CSD 334 MINI PROJECT) was developed as an application-based project at **SCMS School of Engineering and Technology (SSET)**, Cochin, Department of Computer Science and Engineering.
 
-[cite_start]**Development Team (Group 1):** [cite: 8]
-* [cite_start]Mr. Aadhithyan Sudheesh Kumar [SCM23CS001] [cite: 9, 62]
-* [cite_start]Mr. Amishad Martin [SCM23CS043] [cite: 10, 63]
-* [cite_start]Ms. Aneeja J [SCM23CS053] [cite: 11, 64]
-* [cite_start]Ms. Anaya Wilson [SCM23CS051] [cite: 12, 65]
+**Development Team (Group 1):**
+* Mr. Aadhithyan Sudheesh Kumar [SCM23CS001]
+* Mr. Amishad Martin [SCM23CS043]
+* Ms. Aneeja J [SCM23CS053]
+* Ms. Anaya Wilson [SCM23CS051]
 
 **Project Guide:**
-* [cite_start]Ms. Bini Omman (Assistant Professor, Department of CSE) [cite: 55, 60]
+* Ms. Bini Omman (Assistant Professor, Department of CSE)
