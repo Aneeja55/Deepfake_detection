@@ -132,7 +132,7 @@ function ResultPage({ result, reset }) {
       </div>
 
       {/* The Interactive Chart Modal */}
-      <TelemetryModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <TelemetryModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} frameData={result.frame_data} />
 
     </div>
   );

@@ -2,19 +2,15 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
-// --- MOCK DATA (Simulating your backend's Matplotlib output) ---
-// When you connect the backend, you will pass the real array of frame data here!
+// --- FALLBACK MOCK DATA (used only when no real backend data is available) ---
 const generateMockFrames = () => {
   const data = [];
   let currentProb = 0.3;
-  for (let i = 0; i < 4000; i += 40) { // Simulating every 40th frame
-    // Add some random noise to simulate the jagged line in your image
-    currentProb += (Math.random() - 0.5) * 0.2; 
-    // Constrain between 0.1 and 0.9 for realism
-    currentProb = Math.max(0.1, Math.min(0.9, currentProb)); 
+  for (let i = 0; i < 100; i += 1) {
+    currentProb += (Math.random() - 0.5) * 0.2;
+    currentProb = Math.max(0.1, Math.min(0.9, currentProb));
     data.push({ frame: i, probability: currentProb });
   }
-  // Force a spike to mimic a deepfake detection
   data[40].probability = 0.75;
   data[41].probability = 0.82;
   data[42].probability = 0.68;
@@ -60,8 +56,12 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 // --- THE MODAL COMPONENT ---
-function TelemetryModal({ isOpen, onClose }) {
+function TelemetryModal({ isOpen, onClose, frameData }) {
   if (!isOpen) return null;
+
+  // Use real backend data if available, otherwise fall back to mock
+  const chartData = (frameData && frameData.length > 0) ? frameData : mockFrameData;
+  const isRealData = frameData && frameData.length > 0;
 
   return (
     <div style={styles.overlay} onClick={onClose}>
@@ -70,7 +70,11 @@ function TelemetryModal({ isOpen, onClose }) {
         <div style={styles.header}>
           <div>
             <h3 style={styles.title}>Confidence Heartbeat Analysis</h3>
-            <p style={styles.subtitle}>Frame-by-frame ViT structural verification</p>
+            <p style={styles.subtitle}>
+              {isRealData
+                ? `Frame-by-frame ViT structural verification · ${chartData.length} samples`
+                : "Frame-by-frame ViT structural verification (demo data)"}
+            </p>
           </div>
           <button style={styles.closeBtn} onClick={onClose}>
             <X size={24} color="var(--text-muted)" />
@@ -79,7 +83,7 @@ function TelemetryModal({ isOpen, onClose }) {
 
         <div style={styles.chartContainer}>
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={mockFrameData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
               
               {/* This creates the dual-color effect based on the 0.5 threshold! */}
               <defs>
@@ -92,11 +96,13 @@ function TelemetryModal({ isOpen, onClose }) {
               {/* Faint background grid */}
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
               
-              <XAxis 
-                dataKey="frame" 
-                stroke="var(--text-muted)" 
+              <XAxis
+                dataKey="frame"
+                stroke="var(--text-muted)"
                 tick={{fill: 'var(--text-muted)', fontSize: 12}}
                 tickMargin={10}
+                label={{ value: isRealData ? 'Time (s)' : 'Frame', position: 'insideBottomRight', offset: -10, fill: 'var(--text-muted)', fontSize: 11 }}
+                tickFormatter={(val) => isRealData ? `${val}s` : val}
               />
               <YAxis 
                 domain={[0, 1]} 

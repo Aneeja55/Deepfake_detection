@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import ResultPage from "./ResultPage";
 import FaceHologramScene from "./FaceHologram";
 import { UploadCloud, FileVideo, X, AlertCircle } from "lucide-react";
+import { analyzeVideo } from "../api";
 
 const loadingMessages = [
   "Initializing ViT Spatial Analyzer...",
@@ -74,11 +75,30 @@ function UploadPage() {
   const handleUpload = async () => {
     if (!file) return;
     setLoading(true);
-    
-    setTimeout(() => {
-      setResult({ prediction: "FAKE", confidence: 0.985 });
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await analyzeVideo(formData);
+      const data = response.data;
+
+      setResult({
+        prediction: data.prediction,
+        confidence: data.confidence,
+        avg_suspicion: data.avg_suspicion,
+        peak_suspicion: data.peak_suspicion,
+        frame_data: data.frame_data,
+      });
+    } catch (err) {
+      const msg =
+        err?.response?.data?.detail ||
+        "Analysis failed. Please ensure the backend server is running and try again.";
+      setError(msg);
+    } finally {
       setLoading(false);
-    }, 3500); 
+    }
   };
 
   const handleReset = () => {
