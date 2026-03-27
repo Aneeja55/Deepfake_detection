@@ -6,7 +6,8 @@ import "../index.css";
 
 function ResultPage({ result, reset, file }) {
   const isFake = result.prediction.toUpperCase() === "FAKE";
-  const targetConfidence = result.confidence * 100;
+  // Always use average suspicion as the defining "Deepfake Probability" scoring
+  const targetConfidence = result.avg_suspicion * 100;
   
   const [displayScore, setDisplayScore] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false); // Controls the new graph modal
@@ -58,11 +59,16 @@ function ResultPage({ result, reset, file }) {
           </span>
         </div>
 
+        {/* Gauge Title */}
+        <h3 style={{ margin: "20px 0 -5px 0", fontSize: "0.95rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "2px", fontWeight: "600" }}>
+          Deepfake Probability
+        </h3>
+
         {/* Main Verdict & Enlarged Glowing Gauge */}
         <div style={styles.mainVerdict}>
           <div style={styles.gaugeContainer}>
             <svg width="240" height="240" viewBox="0 0 240 240" style={{ transform: "rotate(-90deg)" }}>
-              <circle cx="120" cy="120" r={radius} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="12" />
+              <circle cx="120" cy="120" r={radius} fill="none" stroke="var(--border-color)" strokeWidth="12" />
               <circle 
                 cx="120" cy="120" r={radius} 
                 fill="none" 
@@ -79,36 +85,35 @@ function ResultPage({ result, reset, file }) {
             </svg>
             <div style={styles.gaugeText}>
               <span style={styles.scoreNumber}>{displayScore.toFixed(1)}%</span>
-              <span style={styles.scoreLabel}>{isFake ? "Fake Confidence" : "Real Confidence"}</span>
             </div>
           </div>
         </div>
 
-        {/* ViT Telemetry Data Grid */}
+        {/* Real Backend Statistics Grid */}
         <div style={styles.telemetryGrid}>
           <div style={styles.telemetryItem}>
             <Scan size={18} color="var(--text-muted)" />
             <div style={styles.telemetryText}>
-              <span style={styles.tLabel}>Spatial Artifacts</span>
-              <span style={{...styles.tValue, color: isFake ? "var(--danger)" : "var(--text-main)"}}>
-                {isFake ? "Anomalous" : "Standard"}
+              <span style={styles.tLabel}>Analysis Verdict</span>
+              <span style={{...styles.tValue, color: isFake ? "var(--danger)" : "var(--success)"}}>
+                {isFake ? "THREAT DETECTED" : "AUTHENTIC"}
               </span>
             </div>
           </div>
           <div style={styles.telemetryItem}>
             <Activity size={18} color="var(--text-muted)" />
             <div style={styles.telemetryText}>
-              <span style={styles.tLabel}>Temporal Consistency</span>
+              <span style={styles.tLabel}>Peak Risk Frame</span>
               <span style={{...styles.tValue, color: isFake ? "var(--danger)" : "var(--text-main)"}}>
-                {isFake ? "Irregular" : "Stable"}
+                {(result.peak_suspicion * 100).toFixed(1)}%
               </span>
             </div>
           </div>
           <div style={{...styles.telemetryItem, borderBottom: "none", paddingBottom: 0}}>
             <Fingerprint size={18} color="var(--text-muted)" />
             <div style={styles.telemetryText}>
-              <span style={styles.tLabel}>Model Architecture</span>
-              <span style={styles.tValue}>ViT-Base/16</span>
+              <span style={styles.tLabel}>Frames Verified</span>
+              <span style={styles.tValue}>{result.frame_data.length} frames</span>
             </div>
           </div>
         </div>
@@ -152,8 +157,7 @@ const styles = {
   mainVerdict: { display: "flex", justifyContent: "center", margin: "10px 0" },
   gaugeContainer: { position: "relative", width: "240px", height: "240px", display: "flex", justifyContent: "center", alignItems: "center", margin: "0 auto" },
   gaugeText: { position: "absolute", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" },
-  scoreNumber: { fontSize: "2.4rem", fontWeight: "800", color: "var(--text-main)", lineHeight: "1", textShadow: "0 2px 10px rgba(0,0,0,0.5)" },
-  scoreLabel: { fontSize: "0.8rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "2px" },
+  scoreNumber: { fontSize: "2.5rem", fontWeight: "800", color: "var(--text-main)", lineHeight: "1", textShadow: "0 2px 10px rgba(0,0,0,0.5)" },
   telemetryGrid: { display: "flex", flexDirection: "column", gap: "16px", backgroundColor: "rgba(255,255,255,0.03)", padding: "24px", borderRadius: "16px", border: "1px solid var(--border-color)" },
   telemetryItem: { display: "flex", alignItems: "center", gap: "16px", paddingBottom: "16px", borderBottom: "1px solid rgba(255,255,255,0.05)" },
   telemetryText: { display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center" },

@@ -5,11 +5,11 @@ import { UploadCloud, FileVideo, X, AlertCircle } from "lucide-react";
 import { analyzeVideo } from "../api";
 
 const loadingMessages = [
-  "Initializing ViT Spatial Analyzer...",
-  "Extracting biometric landmarks...",
-  "Scanning for diffusion artifacts...",
-  "Analyzing temporal consistency...",
-  "Compiling confidence matrix..."
+  "Initializing video frame extraction...",
+  "Applying MediaPipe BlazeFace detector...",
+  "Isolating and preprocessing face crops...",
+  "Executing Vision Transformer (ViT-Base/16) analysis...",
+  "Calculating peak and average deepfake probabilities..."
 ];
 
 function UploadPage() {

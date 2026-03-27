@@ -93,8 +93,8 @@ This project (CSD 334 MINI PROJECT) was developed as an application-based projec
 **Development Team (Group 1):**
 * Mr. Aadhithyan Sudheesh Kumar [SCM23CS001]
 * Mr. Amishad Martin [SCM23CS043]
-* Ms. Aneeja J [SCM23CS053]
 * Ms. Anaya Wilson [SCM23CS051]
+* Ms. Aneeja J [SCM23CS053]
 
 **Project Guide:**
 * Ms. Bini Omman (Assistant Professor, Department of CSE)

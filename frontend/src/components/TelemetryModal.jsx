@@ -19,36 +19,48 @@ const generateMockFrames = () => {
 
 const mockFrameData = generateMockFrames();
 
-// --- CUSTOM INTERACTIVE TOOLTIP ---
-const CustomTooltip = ({ active, payload, label, isVideoFake, fileURL }) => {
-  const videoRef = useRef(null);
+const CustomTooltip = ({ active, payload, label, isVideoFake, globalVideoRef }) => {
+  const canvasRef = useRef(null);
 
-  // Sync the hidden video element to the hovered timestamp
+  // Sync the global hidden video element to the hovered timestamp
   useEffect(() => {
-    if (active && payload && payload.length && videoRef.current) {
-      const timeInSec = payload[0].payload.frame; 
-      // Only seek if we have metadata loaded, otherwise wait for onLoadedMetadata
-      if (!isNaN(timeInSec) && videoRef.current.readyState >= 1) {
-        videoRef.current.currentTime = timeInSec;
-      }
-    }
-  }, [active, payload]);
-
-  const handleLoadedMetadata = (e) => {
-    if (active && payload && payload.length) {
+    if (active && payload && payload.length && globalVideoRef?.current) {
       const timeInSec = payload[0].payload.frame; 
       if (!isNaN(timeInSec)) {
-        e.target.currentTime = timeInSec;
+        // Fast seek the global player
+        globalVideoRef.current.currentTime = timeInSec;
       }
     }
-  };
+  }, [active, payload, globalVideoRef]);
+
+  // Paint onto the canvas whenever the global video completes seeking
+  useEffect(() => {
+    const video = globalVideoRef?.current;
+    if (!video) return;
+
+    const paintFrame = () => {
+      const canvas = canvasRef.current;
+      if (canvas && video.videoWidth > 0) {
+        const ctx = canvas.getContext('2d', { alpha: false });
+        // Match the CSS dimensions for 16:9 ratio
+        canvas.width = 180;
+        canvas.height = 100;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      }
+    };
+
+    video.addEventListener('seeked', paintFrame);
+    // Draw immediately in case the video is already at the correct frame
+    paintFrame();
+
+    return () => video.removeEventListener('seeked', paintFrame);
+  }, [globalVideoRef, active]);
 
   if (active && payload && payload.length) {
     const prob = payload[0].value;
     const frameNum = payload[0].payload.frame_num;
 
-    // For FAKE videos: prob is suspicion score (higher = more fake)
-    // For REAL videos: prob has been flipped to real confidence (higher = more real)
+    // prob is always suspicion score (Deepfake Probability)
     const isFrameAboveThreshold = prob >= 0.5;
     
     return (
@@ -66,24 +78,19 @@ const CustomTooltip = ({ active, payload, label, isVideoFake, fileURL }) => {
         gap: '8px'
       }}>
         
-        {/* EXACT FRAME THUMBNAIL */}
-        {fileURL && (
+        {/* EXACT FRAME CANVAS (Painted from hidden global video) */}
+        {globalVideoRef?.current && (
           <div style={{
             width: '180px', 
             height: '100px', 
-            backgroundColor: '#000', 
+            backgroundColor: '#111', 
             borderRadius: '4px', 
             overflow: 'hidden',
             border: '1px solid rgba(255,255,255,0.1)'
           }}>
-            <video 
-              ref={videoRef}
-              src={fileURL}
-              onLoadedMetadata={handleLoadedMetadata}
+            <canvas 
+              ref={canvasRef}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              muted
-              playsInline
-              preload="auto"
             />
           </div>
         )}
@@ -118,6 +125,7 @@ const CustomTooltip = ({ active, payload, label, isVideoFake, fileURL }) => {
 
 // --- THE MODAL COMPONENT ---
 function TelemetryModal({ isOpen, onClose, frameData, prediction, file }) {
+  const globalVideoRef = useRef(null);
   const isVideoFake = prediction && prediction.toUpperCase() === "FAKE";
 
   // Use real backend data if available, otherwise fall back to mock
@@ -137,19 +145,29 @@ function TelemetryModal({ isOpen, onClose, frameData, prediction, file }) {
     };
   }, [fileURL]);
 
-  // For REAL videos, flip probability to show "real confidence" (1 - suspicion)
-  // so the graph correctly shows most points in the green (top) zone
-  const chartData = (!isVideoFake && isRealData) 
-    ? rawData.map(d => ({ ...d, probability: 1 - d.probability }))
-    : rawData;
+  // We simply use the raw Deepfake Probability backend data.
+  // High score = Fake (Red top), Low score = Real (Green bottom).
+  const chartData = rawData;
 
-  // Gradient ID must be unique to avoid conflicts
-  const gradientId = isVideoFake ? "splitColorFake" : "splitColorReal";
+  // Render a universally uniform gradient
+  const gradientId = "splitColorUniform";
 
   if (!isOpen) return null;
 
   return (
     <div style={styles.overlay} onClick={onClose}>
+      {/* Hidden global video element that acts as the source for all CustomTooltip canvas renders */}
+      {fileURL && (
+        <video 
+          ref={globalVideoRef}
+          src={fileURL}
+          style={{ display: 'none' }}
+          preload="auto"
+          muted
+          playsInline
+        />
+      )}
+
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         
         <div style={styles.header}>
@@ -171,19 +189,11 @@ function TelemetryModal({ isOpen, onClose, frameData, prediction, file }) {
             <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
               
               <defs>
-                {isVideoFake ? (
-                  /* FAKE video: top = red (fake zone), bottom = green (real zone) */
-                  <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="50%" stopColor="var(--danger)" stopOpacity={0.8} />
-                    <stop offset="50%" stopColor="var(--success)" stopOpacity={0.3} />
-                  </linearGradient>
-                ) : (
-                  /* REAL video: top = green (real zone), bottom = red (fake zone) */
-                  <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="50%" stopColor="var(--success)" stopOpacity={0.8} />
-                    <stop offset="50%" stopColor="var(--danger)" stopOpacity={0.3} />
-                  </linearGradient>
-                )}
+                {/* UNIFORM DESIGN: top = red (high risk), bottom = green (low risk) */}
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="50%" stopColor="var(--danger)" stopOpacity={0.8} />
+                  <stop offset="50%" stopColor="var(--success)" stopOpacity={0.3} />
+                </linearGradient>
               </defs>
 
               {/* Faint background grid */}
@@ -206,7 +216,7 @@ function TelemetryModal({ isOpen, onClose, frameData, prediction, file }) {
               
               {/* Force tooltip updates so the video seek effect fires reliably */}
               <Tooltip 
-                content={<CustomTooltip isVideoFake={isVideoFake} fileURL={fileURL} />} 
+                content={<CustomTooltip isVideoFake={isVideoFake} globalVideoRef={globalVideoRef} />} 
                 isAnimationActive={false}
               />
               
