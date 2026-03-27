@@ -36,22 +36,26 @@ function Dashboard() {
       
       {/* 1. HERO SECTION */}
       <div style={styles.hero}>
+        <div style={styles.betaBadge}>
+          <AlertTriangle size={14} style={{ color: "var(--accent-cyan)" }} />
+          <span>BETA RESEARCH PREVIEW</span>
+        </div>
         <h1 style={styles.heroTitle}>
           Expose the <span style={styles.gradientText}>Fabricated Reality</span>
         </h1>
         <p style={styles.heroSubtitle}>
-          Advanced deepfake detection powered by Vision Transformers. Upload media to instantly verify its structural authenticity.
+          An experimental deepfake detection framework powered by Vision Transformers. Currently undergoing active development and testing. Results may contain inaccuracies.
         </p>
         <div style={{ display: "flex", gap: "16px", justifyContent: "center" }}>
-          <Link to="/detect" style={styles.ctaButton}>Start Analysis</Link>
+          <Link to="/detect" style={styles.ctaButton}>Try Beta Analysis</Link>
         </div>
       </div>
 
       {/* 2. VIDEO COMPARISON DEMO SECTION */}
       <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>Can You Spot the Difference?</h2>
+        <h2 style={styles.sectionTitle}>Evaluative Video Datasets</h2>
         <p style={{ color: "var(--text-muted)", marginBottom: "30px", textAlign: "center", maxWidth: "600px", fontSize: "1.1rem" }}>
-          Modern GANs and diffusion models create synthetic media that easily fools the human eye. Our ViT architecture sees what you can't.
+          Our models are actively being trained against modern GANs and diffusion model outputs. The current accuracy of structural detection on wild media is still strictly experimental.
         </p>
         
         <div style={styles.videoGrid}>
@@ -114,30 +118,30 @@ function Dashboard() {
 
       {/* 4. TRUST & FEATURES GRID */}
       <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>Why Security Teams Trust Us</h2>
+        <h2 style={styles.sectionTitle}>Research Objectives</h2>
         <div style={styles.grid}>
           <div className="glass-panel" style={styles.card}>
             <div style={styles.iconWrapper}><Zap size={32} color="var(--accent-cyan)" /></div>
-            <h3 style={styles.cardTitle}>Lightning Fast</h3>
-            <p style={styles.cardText}>Get complex neural network inferences in seconds. Optimized architecture means you don't wait for critical results.</p>
+            <h3 style={styles.cardTitle}>Inference Optimization</h3>
+            <p style={styles.cardText}>We are continually optimizing our neural network to quickly process complex video spatial data directly within standard development environments.</p>
           </div>
 
           <div className="glass-panel" style={styles.card}>
             <div style={styles.iconWrapper}><ScanEye size={32} color="var(--primary-blue)" /></div>
-            <h3 style={styles.cardTitle}>Unmatched Precision</h3>
-            <p style={styles.cardText}>We don't just flag fakes—we explain them. ViT technology spots pixel-level manipulation invisible to the human eye.</p>
+            <h3 style={styles.cardTitle}>Spatial Analysis</h3>
+            <p style={styles.cardText}>Exploring ViT technology to identify microscopic pixel-level manipulation, with ongoing efforts to constantly reduce false-positive rates.</p>
           </div>
 
           <div className="glass-panel" style={styles.card}>
             <div style={styles.iconWrapper}><Shield size={32} color="var(--danger)" /></div>
-            <h3 style={styles.cardTitle}>Zero-Day Threat Defense</h3>
-            <p style={styles.cardText}>Trained on the latest GAN and diffusion model outputs, protecting you against next-generation synthetic media.</p>
+            <h3 style={styles.cardTitle}>Iterative Defense</h3>
+            <p style={styles.cardText}>As generative AI rapidly evolves, so does our dataset. The core detection engine routinely undergoes rigorous retraining against the latest synthetic anomalies.</p>
           </div>
 
           <div className="glass-panel" style={styles.card}>
             <div style={styles.iconWrapper}><Lock size={32} color="var(--success)" /></div>
-            <h3 style={styles.cardTitle}>Strict Privacy Protocol</h3>
-            <p style={styles.cardText}>Your files are processed in a volatile environment and immediately purged. Zero data retention. Zero training on user data.</p>
+            <h3 style={styles.cardTitle}>Data Privacy</h3>
+            <p style={styles.cardText}>A fundamental principle of our architecture. Experimental uploads are processed strictly in a volatile state and completely purged after analysis.</p>
           </div>
         </div>
       </div>
@@ -175,6 +179,7 @@ const styles = {
   
   // Hero
   hero: { textAlign: "center", marginBottom: "80px", maxWidth: "800px", paddingTop: "40px" },
+  betaBadge: { display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 14px", backgroundColor: "rgba(56, 189, 248, 0.1)", color: "var(--accent-cyan)", borderRadius: "20px", fontSize: "0.85rem", fontWeight: "700", letterSpacing: "1px", marginBottom: "20px", border: "1px solid rgba(56, 189, 248, 0.2)" },
   heroTitle: { fontSize: "4rem", fontWeight: "800", lineHeight: "1.1", marginBottom: "20px", letterSpacing: "-1.5px" },
   gradientText: { background: "linear-gradient(135deg, var(--accent-cyan), var(--primary-blue))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" },
   heroSubtitle: { fontSize: "1.2rem", color: "var(--text-muted)", marginBottom: "40px", lineHeight: "1.6" },
