@@ -36,10 +36,6 @@ function Dashboard() {
       
       {/* 1. HERO SECTION */}
       <div style={styles.hero}>
-        <div style={styles.betaBadge}>
-          <AlertTriangle size={14} style={{ color: "var(--accent-cyan)" }} />
-          <span>BETA RESEARCH PREVIEW</span>
-        </div>
         <h1 style={styles.heroTitle}>
           Expose the <span style={styles.gradientText}>Fabricated Reality</span>
         </h1>
@@ -97,18 +93,18 @@ function Dashboard() {
       {/* 3. HOW IT WORKS SECTION */}
       <div style={styles.section}>
         <h2 style={styles.sectionTitle}>How to Use DeepShieldAI</h2>
-        <div style={styles.stepsGrid}>
-          <div style={styles.stepCard}>
+        <div className="steps-grid-container">
+          <div className="step-card-item" style={styles.stepCard}>
             <div style={styles.stepIcon}><UploadCloud size={28} /></div>
             <h3 style={styles.stepTitle}>1. Upload Media</h3>
             <p style={styles.stepText}>Drop your video file into our secure portal. We support MP4, AVI, and MOV formats with zero sign-up required.</p>
           </div>
-          <div style={styles.stepCard}>
+          <div className="step-card-item" style={styles.stepCard}>
             <div style={styles.stepIcon}><Cpu size={28} /></div>
             <h3 style={styles.stepTitle}>2. ViT Analysis</h3>
             <p style={styles.stepText}>Our proprietary Vision Transformers scan frame-by-frame, detecting spatial anomalies and temporal inconsistencies.</p>
           </div>
-          <div style={styles.stepCard}>
+          <div className="step-card-item" style={styles.stepCard}>
             <div style={styles.stepIcon}><FileCheck size={28} /></div>
             <h3 style={styles.stepTitle}>3. Forensic Report</h3>
             <p style={styles.stepText}>Get instant, irrefutable results. View a detailed breakdown of confidence scores and specific manipulation artifacts.</p>
@@ -119,7 +115,7 @@ function Dashboard() {
       {/* 4. TRUST & FEATURES GRID */}
       <div style={styles.section}>
         <h2 style={styles.sectionTitle}>Research Objectives</h2>
-        <div style={styles.grid}>
+        <div className="features-grid-container">
           <div className="glass-panel" style={styles.card}>
             <div style={styles.iconWrapper}><Zap size={32} color="var(--accent-cyan)" /></div>
             <h3 style={styles.cardTitle}>Inference Optimization</h3>
@@ -196,14 +192,12 @@ const styles = {
   sectionTitle: { fontSize: "2.5rem", fontWeight: "800", marginBottom: "40px", textAlign: "center", letterSpacing: "-0.5px" },
   
   // Steps Grid
-  stepsGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "30px", width: "100%" },
   stepCard: { display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "20px" },
   stepIcon: { width: "64px", height: "64px", borderRadius: "50%", backgroundColor: "rgba(59, 130, 246, 0.1)", color: "var(--primary-blue)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px" },
   stepTitle: { fontSize: "1.3rem", fontWeight: "700", marginBottom: "12px" },
   stepText: { color: "var(--text-muted)", lineHeight: "1.6" },
 
   // Feature Grid
-  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "24px", width: "100%" },
   card: { padding: "30px", transition: "transform 0.2s ease, box-shadow 0.2s ease", cursor: "default" },
   iconWrapper: { marginBottom: "20px", display: "inline-block", padding: "12px", borderRadius: "12px", backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" },
   cardTitle: { fontSize: "1.25rem", marginBottom: "12px", fontWeight: "700" },
