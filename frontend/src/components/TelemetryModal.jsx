@@ -20,44 +20,11 @@ const generateMockFrames = () => {
 const mockFrameData = generateMockFrames();
 
 // --- CUSTOM INTERACTIVE TOOLTIP ---
-const CustomTooltip = ({ active, payload, label, isVideoFake, globalVideoRef }) => {
-  const canvasRef = useRef(null);
-
-  // Sync the hidden global video element to the hovered timestamp
-  useEffect(() => {
-    if (active && payload && payload.length && globalVideoRef?.current) {
-      const timeInSec = payload[0].payload.frame; 
-      if (!isNaN(timeInSec)) {
-        // Fast seek the master video player
-        globalVideoRef.current.currentTime = timeInSec;
-      }
-    }
-  }, [active, payload, globalVideoRef]);
-
-  // Paint the video frame onto our canvas to fundamentally bypass React layout/mounting bugs
-  useEffect(() => {
-    const video = globalVideoRef?.current;
-    if (!video) return;
-
-    const paintFrame = () => {
-      const canvas = canvasRef.current;
-      if (canvas && video.videoWidth > 0) {
-        const ctx = canvas.getContext('2d', { alpha: false });
-        canvas.width = 180;
-        canvas.height = 100;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      }
-    };
-
-    video.addEventListener('seeked', paintFrame);
-    paintFrame(); // Initial paint
-
-    return () => video.removeEventListener('seeked', paintFrame);
-  }, [globalVideoRef, active]);
-
+const CustomTooltip = ({ active, payload, label, isVideoFake }) => {
   if (active && payload && payload.length) {
     const prob = payload[0].value;
     const frameNum = payload[0].payload.frame_num;
+    const thumbnail = payload[0].payload.thumbnail;
     const isFrameAboveThreshold = prob >= 0.5;
     
     return (
@@ -73,8 +40,8 @@ const CustomTooltip = ({ active, payload, label, isVideoFake, globalVideoRef }) 
         gap: '8px'
       }}>
         
-        {/* EXACT FRAME CANVAS */}
-        {globalVideoRef?.current && (
+        {/* STATIC BACKEND BASE64 THUMBNAIL - Bug-free rendering */}
+        {thumbnail ? (
           <div style={{
             width: '180px', 
             height: '100px', 
@@ -83,10 +50,24 @@ const CustomTooltip = ({ active, payload, label, isVideoFake, globalVideoRef }) 
             overflow: 'hidden',
             border: '1px solid rgba(255,255,255,0.1)'
           }}>
-            <canvas 
-              ref={canvasRef}
+            <img 
+              src={`data:image/jpeg;base64,${thumbnail}`} 
+              alt="Deepfake Analysis Frame" 
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
+          </div>
+        ) : (
+          <div style={{
+            width: '180px', 
+            height: '100px', 
+            backgroundColor: '#111', 
+            borderRadius: '4px', 
+            border: '1px solid rgba(255,255,255,0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <span style={{color: 'var(--text-muted)', fontSize: '0.8rem'}}>No image</span>
           </div>
         )}
 
@@ -115,26 +96,12 @@ const CustomTooltip = ({ active, payload, label, isVideoFake, globalVideoRef }) 
 };
 
 // --- THE MODAL COMPONENT ---
-function TelemetryModal({ isOpen, onClose, frameData, prediction, file }) {
-  const globalVideoRef = useRef(null);
+function TelemetryModal({ isOpen, onClose, frameData, prediction }) {
   const isVideoFake = prediction && prediction.toUpperCase() === "FAKE";
 
   // Use real backend data if available, otherwise fall back to mock
   const rawData = (frameData && frameData.length > 0) ? frameData : mockFrameData;
   const isRealData = frameData && frameData.length > 0;
-
-  // Create local object URL for the uploaded video to display thumbnails
-  const fileURL = useMemo(() => {
-    if (file) return URL.createObjectURL(file);
-    return null;
-  }, [file]);
-
-  // Clean up URL to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      if (fileURL) URL.revokeObjectURL(fileURL);
-    };
-  }, [fileURL]);
 
   // Always use raw Deepfake Probability backend data without flipping!
   const chartData = rawData;
@@ -146,19 +113,6 @@ function TelemetryModal({ isOpen, onClose, frameData, prediction, file }) {
 
   return (
     <div style={styles.overlay} onClick={onClose}>
-      
-      {/* Hidden Master Video element to prevent frame flashing/blanking bugs */}
-      {fileURL && (
-        <video 
-          ref={globalVideoRef}
-          src={fileURL}
-          style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', pointerEvents: 'none' }}
-          preload="auto"
-          muted
-          playsInline
-        />
-      )}
-
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         
         <div style={styles.header}>
@@ -203,9 +157,9 @@ function TelemetryModal({ isOpen, onClose, frameData, prediction, file }) {
                 tickFormatter={(val) => `${(val * 100).toFixed(0)}%`}
               />
               
-              {/* Force tooltip updates so the video seek effect fires reliably */}
+              {/* Standardized static render, no more unstable video refs! */}
               <Tooltip 
-                content={<CustomTooltip isVideoFake={isVideoFake} globalVideoRef={globalVideoRef} />} 
+                content={<CustomTooltip isVideoFake={isVideoFake} />} 
                 isAnimationActive={false}
               />
               

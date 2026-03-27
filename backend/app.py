@@ -99,6 +99,7 @@ def analyze_video_file(video_path: str):
     frame_indices = []   # time in seconds
     frame_scores = []    # suspicion scores
     frame_numbers = []   # exact frame number
+    frame_thumbnails = [] # base64 encoded thumbnails
 
     with torch.no_grad():
         while True:
@@ -130,6 +131,16 @@ def analyze_video_file(video_path: str):
                         frame_indices.append(round(current_frame / fps, 3))
                         frame_numbers.append(current_frame)
                         frame_scores.append(round(suspicion_score, 4))
+                        
+                        # Generate optimized base64 thumbnail for frontend telemetry graph
+                        import base64
+                        h, w = frame.shape[:2]
+                        new_w = 180
+                        new_h = int(h * (new_w / w))
+                        thumb = cv2.resize(frame, (new_w, new_h))
+                        _, buffer = cv2.imencode('.jpg', thumb, [int(cv2.IMWRITE_JPEG_QUALITY), 60])
+                        b64_str = base64.b64encode(buffer).decode('utf-8')
+                        frame_thumbnails.append(b64_str)
 
     vid.release()
 
@@ -145,10 +156,10 @@ def analyze_video_file(video_path: str):
     confidence = peak_suspicion if is_fake else (1 - avg_suspicion)
 
     # Build per-frame data for the telemetry chart
-    # Format: [{ "frame": <time_in_seconds>, "probability": <suspicion_score> }, ...]
+    # Format: [{ "frame": <time_in_seconds>, "probability": <suspicion_score>, "thumbnail": <base64> }, ...]
     frame_data = [
-        {"frame": t, "probability": s, "frame_num": n}
-        for t, s, n in zip(frame_indices, frame_scores, frame_numbers)
+        {"frame": t, "probability": s, "frame_num": n, "thumbnail": thumb}
+        for t, s, n, thumb in zip(frame_indices, frame_scores, frame_numbers, frame_thumbnails)
     ]
 
     return {
