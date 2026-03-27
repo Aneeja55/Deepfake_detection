@@ -1,10 +1,12 @@
-import React, { useRef, useMemo, Suspense } from 'react';
+import React, { useRef, useMemo, Suspense, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, Float, Center, Html } from '@react-three/drei';
 import * as THREE from 'three';
+import { useTheme } from '../ThemeContext';
 
-const CyberHead = ({ isAnalyzing }) => {
+const CyberHead = ({ isAnalyzing, theme }) => {
   const groupRef = useRef();
+  const isLight = theme === 'light';
 
   // Load the realistic human scan
   const { scene } = useGLTF('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb');
@@ -24,7 +26,7 @@ const CyberHead = ({ isAnalyzing }) => {
   // 👉 THE MAGIC: A Custom WebGL Shader to create the scanline hologram effect
   const hologramMaterial = useMemo(() => new THREE.ShaderMaterial({
     transparent: true,
-    blending: THREE.AdditiveBlending, // Makes overlapping areas glow brighter
+    blending: THREE.AdditiveBlending, // Default, will be updated based on theme
     depthWrite: false, // Ensures you can see through it
     uniforms: {
       time: { value: 0 },
@@ -60,10 +62,19 @@ const CyberHead = ({ isAnalyzing }) => {
         // Mix the deep base color with the bright glowing edge color
         vec3 finalColor = mix(baseColor, glowColor, intensity);
 
-        gl_FragColor = vec4(finalColor, intensity * 0.8);
+        // Boost opacity slightly in light mode since we don't use additive blending
+        float alphaMult = 0.8;
+        gl_FragColor = vec4(finalColor, intensity * alphaMult);
       }
     `
   }), []);
+
+  // Update blending based on the theme
+  // Additive blending looks great on dark backgrounds, but is invisible on white backgrounds!
+  useEffect(() => {
+    hologramMaterial.blending = isLight ? THREE.NormalBlending : THREE.AdditiveBlending;
+    hologramMaterial.needsUpdate = true;
+  }, [isLight, hologramMaterial]);
 
   // --- ANIMATION LOOP ---
   useFrame((state) => {
@@ -83,13 +94,13 @@ const CyberHead = ({ isAnalyzing }) => {
     // Feed time to the shader for moving scanlines
     hologramMaterial.uniforms.time.value = t;
 
-    // Change colors based on analysis state
+    // Change colors based on analysis state and theme
     if (isAnalyzing) {
-      hologramMaterial.uniforms.baseColor.value.set("#4A0033"); // Deep Magenta base
-      hologramMaterial.uniforms.glowColor.value.set("#FF0055"); // Bright Red/Pink glow
+      hologramMaterial.uniforms.baseColor.value.set(isLight ? "#9f1239" : "#4A0033"); // Deep Magenta base
+      hologramMaterial.uniforms.glowColor.value.set(isLight ? "#e11d48" : "#FF0055"); // Bright Red/Pink glow
     } else {
-      hologramMaterial.uniforms.baseColor.value.set("#002244"); // Deep Blue base
-      hologramMaterial.uniforms.glowColor.value.set("#00E5FF"); // Bright Cyan glow
+      hologramMaterial.uniforms.baseColor.value.set(isLight ? "#0369a1" : "#002244"); // Deep Blue base
+      hologramMaterial.uniforms.glowColor.value.set(isLight ? "#0284c7" : "#00E5FF"); // Bright Cyan glow
     }
   });
 
@@ -105,11 +116,11 @@ const CyberHead = ({ isAnalyzing }) => {
         {/* Subtle dot overlay for texture */}
         <points geometry={faceGeometry}>
           <pointsMaterial 
-            color={isAnalyzing ? "#FF0055" : "#00E5FF"}
-            size={0.008} 
+            color={isAnalyzing ? (isLight ? "#e11d48" : "#FF0055") : (isLight ? "#0284c7" : "#00E5FF")}
+            size={isLight ? 0.015 : 0.008} 
             transparent={true} 
-            opacity={0.3}
-            blending={THREE.AdditiveBlending}
+            opacity={isLight ? 0.6 : 0.3}
+            blending={isLight ? THREE.NormalBlending : THREE.AdditiveBlending}
             depthWrite={false}
           />
         </points>
@@ -121,6 +132,8 @@ const CyberHead = ({ isAnalyzing }) => {
 
 // --- SCENE WRAPPER ---
 const FaceHologramScene = ({ isAnalyzing = false }) => {
+  const { theme } = useTheme();
+
   return (
     <div style={{ width: '100%', height: '220px', marginBottom: '16px', position: 'relative' }}>
       {/* Explicitly setting alpha: true to guarantee no ugly background box */}
@@ -135,7 +148,7 @@ const FaceHologramScene = ({ isAnalyzing = false }) => {
           </Html>
         }>
           <Center>
-            <CyberHead isAnalyzing={isAnalyzing} />
+            <CyberHead isAnalyzing={isAnalyzing} theme={theme} />
           </Center>
         </Suspense>
       </Canvas>

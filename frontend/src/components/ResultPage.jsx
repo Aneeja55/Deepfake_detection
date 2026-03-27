@@ -4,7 +4,7 @@ import { AlertTriangle, CheckCircle, RotateCcw, Activity, Scan, Fingerprint, Lin
 import TelemetryModal from "./TelemetryModal";
 import "../index.css";
 
-function ResultPage({ result, reset }) {
+function ResultPage({ result, reset, file }) {
   const isFake = result.prediction.toUpperCase() === "FAKE";
   const targetConfidence = result.confidence * 100;
   
@@ -79,7 +79,7 @@ function ResultPage({ result, reset }) {
             </svg>
             <div style={styles.gaugeText}>
               <span style={styles.scoreNumber}>{displayScore.toFixed(1)}%</span>
-              <span style={styles.scoreLabel}>Confidence</span>
+              <span style={styles.scoreLabel}>{isFake ? "Fake Confidence" : "Real Confidence"}</span>
             </div>
           </div>
         </div>
@@ -132,7 +132,7 @@ function ResultPage({ result, reset }) {
       </div>
 
       {/* The Interactive Chart Modal */}
-      <TelemetryModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} frameData={result.frame_data} />
+      <TelemetryModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} frameData={result.frame_data} prediction={result.prediction} file={file} />
 
     </div>
   );
@@ -146,7 +146,7 @@ const styles = {
   card: { padding: "30px 40px", width: "100%", maxWidth: "550px", textAlign: "center", display: "flex", flexDirection: "column", gap: "24px", margin: "0 auto" },
   
   header: { display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" },
-  iconRing: { width: "64px", height: "64px", borderRadius: "50%", border: "2px solid", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.2)" },
+  iconRing: { width: "64px", height: "64px", borderRadius: "50%", border: "2px solid", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "var(--dropzone-bg)" },
   title: { fontSize: "1.75rem", fontWeight: "800", margin: 0, letterSpacing: "-0.5px" },
   badge: { padding: "8px 16px", borderRadius: "20px", fontSize: "0.85rem", fontWeight: "700", letterSpacing: "1px" },
   mainVerdict: { display: "flex", justifyContent: "center", margin: "10px 0" },

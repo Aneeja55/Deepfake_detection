@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
@@ -9,7 +9,7 @@ const generateMockFrames = () => {
   for (let i = 0; i < 100; i += 1) {
     currentProb += (Math.random() - 0.5) * 0.2;
     currentProb = Math.max(0.1, Math.min(0.9, currentProb));
-    data.push({ frame: i, probability: currentProb });
+    data.push({ frame: i, probability: currentProb, frame_num: i * 30 });
   }
   data[40].probability = 0.75;
   data[41].probability = 0.82;
@@ -20,35 +20,96 @@ const generateMockFrames = () => {
 const mockFrameData = generateMockFrames();
 
 // --- CUSTOM INTERACTIVE TOOLTIP ---
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, isVideoFake, fileURL }) => {
+  const videoRef = useRef(null);
+
+  // Sync the hidden video element to the hovered timestamp
+  useEffect(() => {
+    if (active && payload && payload.length && videoRef.current) {
+      const timeInSec = payload[0].payload.frame; 
+      // Only seek if we have metadata loaded, otherwise wait for onLoadedMetadata
+      if (!isNaN(timeInSec) && videoRef.current.readyState >= 1) {
+        videoRef.current.currentTime = timeInSec;
+      }
+    }
+  }, [active, payload]);
+
+  const handleLoadedMetadata = (e) => {
+    if (active && payload && payload.length) {
+      const timeInSec = payload[0].payload.frame; 
+      if (!isNaN(timeInSec)) {
+        e.target.currentTime = timeInSec;
+      }
+    }
+  };
+
   if (active && payload && payload.length) {
     const prob = payload[0].value;
-    const isFake = prob >= 0.5;
+    const frameNum = payload[0].payload.frame_num;
+
+    // For FAKE videos: prob is suspicion score (higher = more fake)
+    // For REAL videos: prob has been flipped to real confidence (higher = more real)
+    const isFrameAboveThreshold = prob >= 0.5;
     
     return (
       <div style={{
         background: 'rgba(10, 15, 28, 0.95)',
-        border: `1px solid ${isFake ? 'var(--danger)' : 'var(--success)'}`,
-        padding: '16px',
+        border: `1px solid ${isVideoFake 
+          ? (isFrameAboveThreshold ? 'var(--danger)' : 'var(--success)') 
+          : (isFrameAboveThreshold ? 'var(--success)' : 'var(--danger)')}`,
+        padding: '12px',
         borderRadius: '8px',
         boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-        backdropFilter: 'blur(4px)'
+        backdropFilter: 'blur(4px)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px'
       }}>
-        <p style={{ color: 'var(--text-muted)', margin: '0 0 8px 0', fontSize: '0.85rem', fontFamily: 'monospace' }}>
-          Frame Sequence: {label}
-        </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ 
-            color: isFake ? 'var(--danger)' : 'var(--success)', 
-            fontWeight: '800', 
-            fontSize: '1.1rem' 
+        
+        {/* EXACT FRAME THUMBNAIL */}
+        {fileURL && (
+          <div style={{
+            width: '180px', 
+            height: '100px', 
+            backgroundColor: '#000', 
+            borderRadius: '4px', 
+            overflow: 'hidden',
+            border: '1px solid rgba(255,255,255,0.1)'
           }}>
-            {isFake ? '⚠️ FAKE' : '✅ REAL'}
-          </span>
-          <span style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
-            ({(prob * 100).toFixed(1)}% Confidence)
-          </span>
+            <video 
+              ref={videoRef}
+              src={fileURL}
+              onLoadedMetadata={handleLoadedMetadata}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              muted
+              playsInline
+              preload="auto"
+            />
+          </div>
+        )}
+
+        <div>
+          <p style={{ color: 'var(--text-muted)', margin: '0 0 4px 0', fontSize: '0.85rem', fontFamily: 'monospace' }}>
+            Frame: {frameNum !== undefined ? frameNum : label} <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>({label}s)</span>
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ 
+              color: isVideoFake
+                ? (isFrameAboveThreshold ? 'var(--danger)' : 'var(--success)')
+                : (isFrameAboveThreshold ? 'var(--success)' : 'var(--danger)'),
+              fontWeight: '800', 
+              fontSize: '1.1rem' 
+            }}>
+              {isVideoFake
+                ? (isFrameAboveThreshold ? '⚠️ FAKE' : '✅ REAL')
+                : (isFrameAboveThreshold ? '✅ REAL' : '⚠️ FAKE')}
+            </span>
+            <span style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
+              ({(prob * 100).toFixed(1)}% {isVideoFake ? 'Fake' : 'Real'} Confidence)
+            </span>
+          </div>
         </div>
+
       </div>
     );
   }
@@ -56,12 +117,36 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 // --- THE MODAL COMPONENT ---
-function TelemetryModal({ isOpen, onClose, frameData }) {
-  if (!isOpen) return null;
+function TelemetryModal({ isOpen, onClose, frameData, prediction, file }) {
+  const isVideoFake = prediction && prediction.toUpperCase() === "FAKE";
 
   // Use real backend data if available, otherwise fall back to mock
-  const chartData = (frameData && frameData.length > 0) ? frameData : mockFrameData;
+  const rawData = (frameData && frameData.length > 0) ? frameData : mockFrameData;
   const isRealData = frameData && frameData.length > 0;
+
+  // Create local object URL for the uploaded video to display thumbnails
+  const fileURL = useMemo(() => {
+    if (file) return URL.createObjectURL(file);
+    return null;
+  }, [file]);
+
+  // Clean up URL to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (fileURL) URL.revokeObjectURL(fileURL);
+    };
+  }, [fileURL]);
+
+  // For REAL videos, flip probability to show "real confidence" (1 - suspicion)
+  // so the graph correctly shows most points in the green (top) zone
+  const chartData = (!isVideoFake && isRealData) 
+    ? rawData.map(d => ({ ...d, probability: 1 - d.probability }))
+    : rawData;
+
+  // Gradient ID must be unique to avoid conflicts
+  const gradientId = isVideoFake ? "splitColorFake" : "splitColorReal";
+
+  if (!isOpen) return null;
 
   return (
     <div style={styles.overlay} onClick={onClose}>
@@ -85,12 +170,20 @@ function TelemetryModal({ isOpen, onClose, frameData }) {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
               
-              {/* This creates the dual-color effect based on the 0.5 threshold! */}
               <defs>
-                <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="50%" stopColor="var(--danger)" stopOpacity={0.8} />
-                  <stop offset="50%" stopColor="var(--success)" stopOpacity={0.3} />
-                </linearGradient>
+                {isVideoFake ? (
+                  /* FAKE video: top = red (fake zone), bottom = green (real zone) */
+                  <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="50%" stopColor="var(--danger)" stopOpacity={0.8} />
+                    <stop offset="50%" stopColor="var(--success)" stopOpacity={0.3} />
+                  </linearGradient>
+                ) : (
+                  /* REAL video: top = green (real zone), bottom = red (fake zone) */
+                  <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="50%" stopColor="var(--success)" stopOpacity={0.8} />
+                    <stop offset="50%" stopColor="var(--danger)" stopOpacity={0.3} />
+                  </linearGradient>
+                )}
               </defs>
 
               {/* Faint background grid */}
@@ -111,7 +204,11 @@ function TelemetryModal({ isOpen, onClose, frameData }) {
                 tickFormatter={(val) => `${(val * 100).toFixed(0)}%`}
               />
               
-              <Tooltip content={<CustomTooltip />} />
+              {/* Force tooltip updates so the video seek effect fires reliably */}
+              <Tooltip 
+                content={<CustomTooltip isVideoFake={isVideoFake} fileURL={fileURL} />} 
+                isAnimationActive={false}
+              />
               
               {/* The 0.5 Decision Threshold Line */}
               <ReferenceLine y={0.5} stroke="var(--text-main)" strokeDasharray="5 5" strokeWidth={2} opacity={0.5}>
@@ -122,7 +219,7 @@ function TelemetryModal({ isOpen, onClose, frameData }) {
                 dataKey="probability" 
                 stroke="#fff" 
                 strokeWidth={2}
-                fill="url(#splitColor)" 
+                fill={`url(#${gradientId})`}
                 activeDot={{ r: 6, strokeWidth: 0, fill: "var(--text-main)" }}
               />
             </AreaChart>

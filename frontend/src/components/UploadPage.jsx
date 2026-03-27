@@ -107,7 +107,7 @@ function UploadPage() {
     setError(null);
   };
 
-  if (result) return <ResultPage result={result} reset={handleReset} />;
+  if (result) return <ResultPage result={result} reset={handleReset} file={file} />;
 
   // Determine the dropzone border color based on state
   let dropzoneColor = "var(--border-color)";
@@ -137,7 +137,7 @@ function UploadPage() {
           style={{
             ...styles.dropZone,
             borderColor: dropzoneColor,
-            backgroundColor: error ? "rgba(239, 68, 68, 0.05)" : (dragActive ? "rgba(6, 182, 212, 0.05)" : "rgba(0,0,0,0.2)")
+            backgroundColor: error ? "rgba(239, 68, 68, 0.05)" : (dragActive ? "rgba(6, 182, 212, 0.05)" : "var(--dropzone-bg)")
           }}
           onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
           onDragLeave={() => setDragActive(false)}
@@ -221,7 +221,7 @@ const styles = {
   title: { fontSize: "1.75rem", fontWeight: "700", marginBottom: "8px", letterSpacing: "-0.5px" },
   subtitle: { color: "var(--text-muted)", fontSize: "0.95rem" },
   dropZone: { border: "2px dashed", borderRadius: "12px", padding: "20px", marginBottom: "24px", transition: "all 0.3s ease", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "140px" },
-  fileChip: { display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", backgroundColor: "rgba(255,255,255,0.05)", padding: "12px 16px", borderRadius: "8px", border: "1px solid var(--border-color)" },
+  fileChip: { display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", backgroundColor: "var(--dropzone-bg)", padding: "12px 16px", borderRadius: "8px", border: "1px solid var(--border-color)" },
   fileChipLeft: { display: "flex", alignItems: "center", gap: "12px", textAlign: "left" },
   clearBtn: { background: "transparent", border: "none", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", transition: "background 0.2s" },
   button: { width: "100%", padding: "16px", backgroundColor: "var(--primary-blue)", border: "none", borderRadius: "10px", color: "white", fontWeight: "600", fontSize: "1rem", transition: "all 0.2s ease", minHeight: "56px" },

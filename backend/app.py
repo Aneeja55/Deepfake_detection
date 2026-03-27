@@ -98,6 +98,7 @@ def analyze_video_file(video_path: str):
 
     frame_indices = []   # time in seconds
     frame_scores = []    # suspicion scores
+    frame_numbers = []   # exact frame number
 
     with torch.no_grad():
         while True:
@@ -127,6 +128,7 @@ def analyze_video_file(video_path: str):
                         suspicion_score = 1 - prediction  # 1=Fake, 0=Real
 
                         frame_indices.append(round(current_frame / fps, 3))
+                        frame_numbers.append(current_frame)
                         frame_scores.append(round(suspicion_score, 4))
 
     vid.release()
@@ -145,8 +147,8 @@ def analyze_video_file(video_path: str):
     # Build per-frame data for the telemetry chart
     # Format: [{ "frame": <time_in_seconds>, "probability": <suspicion_score> }, ...]
     frame_data = [
-        {"frame": t, "probability": s}
-        for t, s in zip(frame_indices, frame_scores)
+        {"frame": t, "probability": s, "frame_num": n}
+        for t, s, n in zip(frame_indices, frame_scores, frame_numbers)
     ]
 
     return {

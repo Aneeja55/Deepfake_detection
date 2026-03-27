@@ -1,9 +1,13 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { Sun, Moon } from "lucide-react";
+import { useTheme } from "../ThemeContext";
 import "../index.css";
 
 function Navbar() {
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "dark";
 
   return (
     <nav className="glass-panel" style={styles.nav}>
@@ -24,6 +28,34 @@ function Navbar() {
         >
           Dashboard
         </Link>
+
+        {/* Theme Toggle */}
+        <button 
+          onClick={toggleTheme} 
+          style={styles.themeToggle}
+          title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          aria-label="Toggle theme"
+        >
+          <div style={{
+            ...styles.toggleTrack,
+            backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"
+          }}>
+            <div style={{
+              ...styles.toggleThumb,
+              transform: isDark ? "translateX(2px)" : "translateX(24px)",
+              backgroundColor: isDark ? "#1e293b" : "#fbbf24",
+              boxShadow: isDark 
+                ? "0 0 6px rgba(148, 163, 184, 0.3)" 
+                : "0 0 8px rgba(251, 191, 36, 0.5)"
+            }}>
+              {isDark 
+                ? <Moon size={12} color="#94a3b8" /> 
+                : <Sun size={12} color="#92400e" />
+              }
+            </div>
+          </div>
+        </button>
+
         <Link 
           to="/detect" 
           style={{...styles.link, ...styles.primaryBtn}}
@@ -48,6 +80,7 @@ const styles = {
     borderLeft: "none",
     borderRight: "none",
     borderRadius: "0 0 16px 16px",
+    transition: "background-color 0.3s ease",
   },
   logoContainer: {
     display: "flex",
@@ -65,7 +98,7 @@ const styles = {
   },
   links: {
     display: "flex",
-    gap: "24px",
+    gap: "20px",
     alignItems: "center"
   },
   link: {
@@ -81,6 +114,33 @@ const styles = {
     borderRadius: "8px",
     fontWeight: "600",
     transition: "background-color 0.2s",
+  },
+  themeToggle: {
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    padding: 0,
+    display: "flex",
+    alignItems: "center",
+  },
+  toggleTrack: {
+    width: "48px",
+    height: "24px",
+    borderRadius: "12px",
+    position: "relative",
+    transition: "background-color 0.3s ease",
+    border: "1px solid var(--border-color)",
+  },
+  toggleThumb: {
+    width: "20px",
+    height: "20px",
+    borderRadius: "50%",
+    position: "absolute",
+    top: "1px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease",
   }
 };
 
