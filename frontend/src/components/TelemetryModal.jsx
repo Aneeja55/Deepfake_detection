@@ -2,7 +2,7 @@ import React, { useMemo, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
-// --- FALLBACK MOCK DATA (used only when no real backend data is available) ---
+// --- FALLBACK MOCK DATA ---
 const generateMockFrames = () => {
   const data = [];
   let currentProb = 0.3;
@@ -19,21 +19,22 @@ const generateMockFrames = () => {
 
 const mockFrameData = generateMockFrames();
 
+// --- CUSTOM INTERACTIVE TOOLTIP ---
 const CustomTooltip = ({ active, payload, label, isVideoFake, globalVideoRef }) => {
   const canvasRef = useRef(null);
 
-  // Sync the global hidden video element to the hovered timestamp
+  // Sync the hidden global video element to the hovered timestamp
   useEffect(() => {
     if (active && payload && payload.length && globalVideoRef?.current) {
       const timeInSec = payload[0].payload.frame; 
       if (!isNaN(timeInSec)) {
-        // Fast seek the global player
+        // Fast seek the master video player
         globalVideoRef.current.currentTime = timeInSec;
       }
     }
   }, [active, payload, globalVideoRef]);
 
-  // Paint onto the canvas whenever the global video completes seeking
+  // Paint the video frame onto our canvas to fundamentally bypass React layout/mounting bugs
   useEffect(() => {
     const video = globalVideoRef?.current;
     if (!video) return;
@@ -42,7 +43,6 @@ const CustomTooltip = ({ active, payload, label, isVideoFake, globalVideoRef }) 
       const canvas = canvasRef.current;
       if (canvas && video.videoWidth > 0) {
         const ctx = canvas.getContext('2d', { alpha: false });
-        // Match the CSS dimensions for 16:9 ratio
         canvas.width = 180;
         canvas.height = 100;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -50,8 +50,7 @@ const CustomTooltip = ({ active, payload, label, isVideoFake, globalVideoRef }) 
     };
 
     video.addEventListener('seeked', paintFrame);
-    // Draw immediately in case the video is already at the correct frame
-    paintFrame();
+    paintFrame(); // Initial paint
 
     return () => video.removeEventListener('seeked', paintFrame);
   }, [globalVideoRef, active]);
@@ -59,16 +58,12 @@ const CustomTooltip = ({ active, payload, label, isVideoFake, globalVideoRef }) 
   if (active && payload && payload.length) {
     const prob = payload[0].value;
     const frameNum = payload[0].payload.frame_num;
-
-    // prob is always suspicion score (Deepfake Probability)
     const isFrameAboveThreshold = prob >= 0.5;
     
     return (
       <div style={{
         background: 'rgba(10, 15, 28, 0.95)',
-        border: `1px solid ${isVideoFake 
-          ? (isFrameAboveThreshold ? 'var(--danger)' : 'var(--success)') 
-          : (isFrameAboveThreshold ? 'var(--success)' : 'var(--danger)')}`,
+        border: `1px solid ${isFrameAboveThreshold ? 'var(--danger)' : 'var(--success)'}`,
         padding: '12px',
         borderRadius: '8px',
         boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
@@ -78,7 +73,7 @@ const CustomTooltip = ({ active, payload, label, isVideoFake, globalVideoRef }) 
         gap: '8px'
       }}>
         
-        {/* EXACT FRAME CANVAS (Painted from hidden global video) */}
+        {/* EXACT FRAME CANVAS */}
         {globalVideoRef?.current && (
           <div style={{
             width: '180px', 
@@ -101,18 +96,14 @@ const CustomTooltip = ({ active, payload, label, isVideoFake, globalVideoRef }) 
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ 
-              color: isVideoFake
-                ? (isFrameAboveThreshold ? 'var(--danger)' : 'var(--success)')
-                : (isFrameAboveThreshold ? 'var(--success)' : 'var(--danger)'),
+              color: isFrameAboveThreshold ? 'var(--danger)' : 'var(--success)',
               fontWeight: '800', 
               fontSize: '1.1rem' 
             }}>
-              {isVideoFake
-                ? (isFrameAboveThreshold ? '⚠️ FAKE' : '✅ REAL')
-                : (isFrameAboveThreshold ? '✅ REAL' : '⚠️ FAKE')}
+              {isFrameAboveThreshold ? '⚠️ FAKE' : '✅ REAL'}
             </span>
             <span style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
-              ({(prob * 100).toFixed(1)}% {isVideoFake ? 'Fake' : 'Real'} Confidence)
+              ({(prob * 100).toFixed(1)}% Deepfake Probability)
             </span>
           </div>
         </div>
@@ -145,10 +136,9 @@ function TelemetryModal({ isOpen, onClose, frameData, prediction, file }) {
     };
   }, [fileURL]);
 
-  // We simply use the raw Deepfake Probability backend data.
-  // High score = Fake (Red top), Low score = Real (Green bottom).
+  // Always use raw Deepfake Probability backend data without flipping!
   const chartData = rawData;
-
+  
   // Render a universally uniform gradient
   const gradientId = "splitColorUniform";
 
@@ -156,12 +146,13 @@ function TelemetryModal({ isOpen, onClose, frameData, prediction, file }) {
 
   return (
     <div style={styles.overlay} onClick={onClose}>
-      {/* Hidden global video element that acts as the source for all CustomTooltip canvas renders */}
+      
+      {/* Hidden Master Video element to prevent frame flashing/blanking bugs */}
       {fileURL && (
         <video 
           ref={globalVideoRef}
           src={fileURL}
-          style={{ display: 'none' }}
+          style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', pointerEvents: 'none' }}
           preload="auto"
           muted
           playsInline
@@ -172,7 +163,7 @@ function TelemetryModal({ isOpen, onClose, frameData, prediction, file }) {
         
         <div style={styles.header}>
           <div>
-            <h3 style={styles.title}>Confidence Heartbeat Analysis</h3>
+            <h3 style={styles.title}>Deepfake Probability Analysis</h3>
             <p style={styles.subtitle}>
               {isRealData
                 ? `Frame-by-frame ViT structural verification · ${chartData.length} samples`
@@ -189,14 +180,12 @@ function TelemetryModal({ isOpen, onClose, frameData, prediction, file }) {
             <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
               
               <defs>
-                {/* UNIFORM DESIGN: top = red (high risk), bottom = green (low risk) */}
                 <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="50%" stopColor="var(--danger)" stopOpacity={0.8} />
                   <stop offset="50%" stopColor="var(--success)" stopOpacity={0.3} />
                 </linearGradient>
               </defs>
 
-              {/* Faint background grid */}
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
               
               <XAxis
