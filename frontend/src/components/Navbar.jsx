@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Sun, Moon } from "lucide-react";
 import { useTheme } from "../ThemeContext";
@@ -8,26 +8,39 @@ function Navbar() {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
-    <nav className="glass-panel" style={styles.nav}>
-      <div style={styles.logoContainer}>
+    <nav className="glass-panel" style={{...styles.nav, padding: isMobile ? "12px 16px" : "16px 5%"}}>
+      <Link to="/" style={styles.logoContainer}>
         {/* Simple SVG Logo */}
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary-blue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width={isMobile ? "24" : "28"} height={isMobile ? "24" : "28"} viewBox="0 0 24 24" fill="none" stroke="var(--primary-blue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           <path d="M12 8v4"/>
           <path d="M12 16h.01"/>
         </svg>
-        <h2 style={styles.logoText}>DeepShield<span style={styles.accent}>AI</span></h2>
-      </div>
+        <h2 style={{...styles.logoText, fontSize: isMobile ? "1.1rem" : "1.25rem"}}>
+          DeepShield<span style={styles.accent}>AI</span>
+        </h2>
+      </Link>
 
-      <div style={styles.links}>
-        <Link 
-          to="/" 
-          style={{...styles.link, color: location.pathname === "/" ? "var(--text-main)" : "var(--text-muted)"}}
-        >
-          Dashboard
-        </Link>
+      <div style={{...styles.links, gap: isMobile ? "12px" : "20px"}}>
+        
+        {/* Conditionally hide Dashboard link on mobile if we're already ON the Dashboard */}
+        {(!isMobile || location.pathname !== "/") && (
+          <Link 
+            to="/" 
+            style={{...styles.link, color: location.pathname === "/" ? "var(--text-main)" : "var(--text-muted)", fontSize: isMobile ? "0.85rem" : "0.95rem"}}
+          >
+            Dashboard
+          </Link>
+        )}
 
         {/* Theme Toggle */}
         <button 
@@ -56,12 +69,15 @@ function Navbar() {
           </div>
         </button>
 
-        <Link 
-          to="/detect" 
-          style={{...styles.link, ...styles.primaryBtn}}
-        >
-          Detect Video
-        </Link>
+        {/* Conditionally hide Detect Video link on mobile if we're already ON the Detect page */}
+        {(!isMobile || location.pathname !== "/detect") && (
+          <Link 
+            to="/detect" 
+            style={{...styles.link, ...styles.primaryBtn, fontSize: isMobile ? "0.85rem" : "0.95rem", padding: isMobile ? "6px 12px" : "8px 16px"}}
+          >
+            Detect Video
+          </Link>
+        )}
       </div>
     </nav>
   );
@@ -85,13 +101,16 @@ const styles = {
   logoContainer: {
     display: "flex",
     alignItems: "center",
-    gap: "10px"
+    gap: "10px",
+    textDecoration: "none",
+    color: "inherit"
   },
   logoText: {
     margin: 0,
     fontSize: "1.25rem",
     fontWeight: "800",
-    letterSpacing: "-0.5px"
+    letterSpacing: "-0.5px",
+    color: "var(--text-main)"
   },
   accent: {
     color: "var(--primary-blue)"
