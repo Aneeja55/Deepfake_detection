@@ -125,3 +125,46 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* === Result Page Layout === */
+.result-card {
+  padding: 40px;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.result-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 40px;
+}
+
+.result-gauge-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.result-stats-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+@media (max-width: 800px) {
+  .result-content {
+    flex-direction: column;
+    gap: 24px;
+  }
+  .result-card {
+    padding: 30px;
+    max-width: 550px;
+  }
+}
