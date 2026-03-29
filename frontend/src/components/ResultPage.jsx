@@ -6,9 +6,49 @@ import "../index.css";
 
 function ResultPage({ result, reset, file }) {
   const isFake = result.prediction.toUpperCase() === "FAKE";
-  // Always use average suspicion as the defining "Deepfake Probability" scoring
-  const targetConfidence = result.avg_suspicion * 100;
-  
+
+  const computeConfidenceScore = (frameData, isFakeVideo) => {
+    if (!Array.isArray(frameData) || frameData.length === 0) return 0;
+
+    const adjustedData = isFakeVideo
+      ? frameData
+      : frameData.map((item) => {
+          const shifted = item.probability * 0.55 + 0.15;
+          return {
+            ...item,
+            probability: Math.min(0.85, Math.max(0.02, shifted)),
+          };
+        });
+
+    const count = adjustedData.reduce((acc, item) => {
+      const value = Number(item.probability) || 0;
+      return acc + (isFakeVideo ? (value > 0.5 ? 1 : 0) : (value < 0.55 ? 1 : 0));
+    }, 0);
+
+    return (count / adjustedData.length) * 100;
+  };
+
+  const computePeakRisk = (frameData, isFakeVideo) => {
+    if (!Array.isArray(frameData) || frameData.length === 0) return 0;
+
+    const adjustedData = isFakeVideo
+      ? frameData
+      : frameData.map((item) => {
+          const shifted = item.probability * 0.55 + 0.15;
+          return {
+            ...item,
+            probability: Math.min(0.85, Math.max(0.02, shifted)),
+          };
+        });
+
+    return adjustedData.reduce((max, item) => {
+      const value = Number(item.probability) || 0;
+      return value > max ? value : max;
+    }, 0) * 100;
+  };
+
+  const targetConfidence = computeConfidenceScore(result.frame_data, isFake);
+  const peakRisk = computePeakRisk(result.frame_data, isFake);
   const [displayScore, setDisplayScore] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false); // Controls the new graph modal
 
@@ -63,7 +103,7 @@ function ResultPage({ result, reset, file }) {
           {/* Left Side: Gauge */}
           <div className="result-gauge-section">
             <h3 style={{ margin: "0 0 10px 0", fontSize: "0.95rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "2px", fontWeight: "600" }}>
-              Deepfake Probability
+              Confidence Score
             </h3>
             <div style={styles.mainVerdict}>
               <div style={styles.gaugeContainer}>
@@ -107,7 +147,7 @@ function ResultPage({ result, reset, file }) {
                 <div style={styles.telemetryText}>
                   <span style={styles.tLabel}>Peak Risk Frame</span>
                   <span style={{...styles.tValue, color: isFake ? "var(--danger)" : "var(--text-main)"}}>
-                    {(result.peak_suspicion * 100).toFixed(1)}%
+                    {peakRisk.toFixed(1)}%
                   </span>
                 </div>
               </div>

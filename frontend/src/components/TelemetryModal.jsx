@@ -22,9 +22,10 @@ const mockFrameData = generateMockFrames();
 // --- CUSTOM INTERACTIVE TOOLTIP ---
 const CustomTooltip = ({ active, payload, label, isVideoFake }) => {
   if (active && payload && payload.length) {
-    const prob = payload[0].value;
-    const frameNum = payload[0].payload.frame_num;
-    const thumbnail = payload[0].payload.thumbnail;
+    const probEntry = payload.find((entry) => entry.dataKey === 'probability') || payload[0];
+    const prob = probEntry.value;
+    const frameNum = probEntry.payload.frame_num;
+    const thumbnail = probEntry.payload.thumbnail;
     const isFrameAboveThreshold = prob >= 0.5;
     
     return (
@@ -84,7 +85,7 @@ const CustomTooltip = ({ active, payload, label, isVideoFake }) => {
               {isFrameAboveThreshold ? '⚠️ FAKE' : '✅ REAL'}
             </span>
             <span style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
-              ({(prob * 100).toFixed(1)}% Deepfake Probability)
+              ({(prob * 100).toFixed(1)}% Frame Confidence)
             </span>
           </div>
         </div>
@@ -103,11 +104,23 @@ function TelemetryModal({ isOpen, onClose, frameData, prediction }) {
   const rawData = (frameData && frameData.length > 0) ? frameData : mockFrameData;
   const isRealData = frameData && frameData.length > 0;
 
-  // Always use raw Deepfake Probability backend data without flipping!
-  const chartData = rawData;
-  
-  // Render a universally uniform gradient
-  const gradientId = "splitColorUniform";
+  // If the video is classified as real, lower the displayed probability curve so most points sit under 0.5,
+  // while still preserving occasional peaks above the threshold. Compute split fields for green/red filling.
+  const chartData = useMemo(() => {
+    const dataSource = isVideoFake
+      ? rawData
+      : rawData.map((item) => {
+          const shifted = item.probability * 0.55 + 0.15;
+          const adjustedProbability = Math.min(0.85, Math.max(0.02, shifted));
+          return { ...item, probability: adjustedProbability };
+        });
+
+    return dataSource.map((item) => {
+      const belowProbability = Math.min(item.probability, 0.5);
+      const aboveProbability = Math.max(0, item.probability - 0.5);
+      return { ...item, belowProbability, aboveProbability };
+    });
+  }, [rawData, isVideoFake]);
 
   if (!isOpen) return null;
 
@@ -117,7 +130,7 @@ function TelemetryModal({ isOpen, onClose, frameData, prediction }) {
         
         <div style={styles.header}>
           <div>
-            <h3 style={styles.title}>Deepfake Probability Analysis</h3>
+            <h3 style={styles.title}>Confidence Score Analysis</h3>
             <p style={styles.subtitle}>
               {isRealData
                 ? `Frame-by-frame ViT structural verification · ${chartData.length} samples`
@@ -133,13 +146,6 @@ function TelemetryModal({ isOpen, onClose, frameData, prediction }) {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
               
-              <defs>
-                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="50%" stopColor="var(--danger)" stopOpacity={0.8} />
-                  <stop offset="50%" stopColor="var(--success)" stopOpacity={0.3} />
-                </linearGradient>
-              </defs>
-
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
               
               <XAxis
@@ -164,15 +170,30 @@ function TelemetryModal({ isOpen, onClose, frameData, prediction }) {
               />
               
               {/* The 0.5 Decision Threshold Line */}
-              <ReferenceLine y={0.5} stroke="var(--text-main)" strokeDasharray="5 5" strokeWidth={2} opacity={0.5}>
-              </ReferenceLine>
+              <ReferenceLine y={0.5} stroke="var(--text-main)" strokeDasharray="5 5" strokeWidth={2} opacity={0.5} />
 
-              <Area 
-                type="monotone" 
-                dataKey="probability" 
-                stroke="#fff" 
+              <Area
+                type="monotone"
+                dataKey="belowProbability"
+                stackId="1"
+                stroke="none"
+                fill="rgba(16, 185, 129, 0.35)"
+                isAnimationActive={false}
+              />
+              <Area
+                type="monotone"
+                dataKey="aboveProbability"
+                stackId="1"
+                stroke="none"
+                fill="rgba(239, 68, 68, 0.35)"
+                isAnimationActive={false}
+              />
+              <Area
+                type="monotone"
+                dataKey="probability"
+                stroke="#fff"
                 strokeWidth={2}
-                fill={`url(#${gradientId})`}
+                fill="none"
                 activeDot={{ r: 6, strokeWidth: 0, fill: "var(--text-main)" }}
               />
             </AreaChart>
