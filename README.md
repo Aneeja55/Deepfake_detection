@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # DeepShield AI - AI-Based Deepfake Detection Application
 
 DeepShield AI is a full-stack, AI-based deepfake detection application designed to identify manipulated media and provide evidence-backed verification. By bridging an interactive, forensic-style React frontend with a powerful Python FastAPI backend, it allows users to upload videos and instantly verify their structural authenticity against neural manipulation.
@@ -100,3 +101,17 @@ This project (CSD 334 MINI PROJECT) was developed as an application-based projec
 
 **Project Guide:**
 * Ms. Bini Omman (Assistant Professor, Department of CSE)
+=======
+---
+title: DeepShieldAI
+emoji: 🦀
+colorFrom: pink
+colorTo: red
+sdk: docker
+pinned: false
+license: mit
+short_description: deepfake-detection-app
+---
+
+Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
+>>>>>>> 873da357b11a475d996bcbdb13ac2fd541bd67b6

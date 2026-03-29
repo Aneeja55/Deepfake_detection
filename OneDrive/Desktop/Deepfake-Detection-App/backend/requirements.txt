@@ -1,9 +1,0 @@
-fastapi
-uvicorn[standard]
-python-multipart
-opencv-python
-torch
-torchvision
-mediapipe
-numpy
-matplotlib
