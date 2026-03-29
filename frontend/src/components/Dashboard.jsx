@@ -11,13 +11,13 @@ const FAQItem = ({ question, answer }) => {
     <div style={styles.faqItem} onClick={() => setIsOpen(!isOpen)}>
       <div style={styles.faqQuestion}>
         <h4 style={{ margin: 0, fontSize: "1.05rem", fontWeight: "600" }}>{question}</h4>
-        <ChevronDown 
-          size={20} 
-          style={{ 
-            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", 
+        <ChevronDown
+          size={20}
+          style={{
+            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
             transition: "transform 0.3s ease",
-            color: "var(--primary-blue)" 
-          }} 
+            color: "var(--primary-blue)"
+          }}
         />
       </div>
       {isOpen && (
@@ -33,7 +33,7 @@ const FAQItem = ({ question, answer }) => {
 function Dashboard() {
   return (
     <div style={styles.container}>
-      
+
       {/* 1. HERO SECTION */}
       <div style={styles.hero}>
         <h1 style={styles.heroTitle}>
@@ -49,22 +49,22 @@ function Dashboard() {
 
       {/* 2. VIDEO COMPARISON DEMO SECTION */}
       <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>Evaluative Video Datasets</h2>
+        <h2 style={styles.sectionTitle}>Real vs. Synthetic Media</h2>
         <p style={{ color: "var(--text-muted)", marginBottom: "30px", textAlign: "center", maxWidth: "600px", fontSize: "1.1rem" }}>
           Our models are actively being trained against modern GANs and diffusion model outputs. The current accuracy of structural detection on wild media is still strictly experimental.
         </p>
-        
+
         <div style={styles.videoGrid}>
           {/* Fake Video Player */}
-          <div className="glass-panel" style={{...styles.videoWrapper, borderTop: "4px solid var(--danger)"}}>
-            <div style={{...styles.videoHeader, color: "var(--danger)", backgroundColor: "rgba(239, 68, 68, 0.1)"}}>
+          <div className="glass-panel" style={{ ...styles.videoWrapper, borderTop: "4px solid var(--danger)" }}>
+            <div style={{ ...styles.videoHeader, color: "var(--danger)", backgroundColor: "rgba(239, 68, 68, 0.1)" }}>
               <AlertTriangle size={18} />
-              <span style={{fontWeight: "700", letterSpacing: "1px"}}>SYNTHETIC MEDIA</span>
+              <span style={{ fontWeight: "700", letterSpacing: "1px" }}>SYNTHETIC MEDIA</span>
             </div>
-            <video 
-              autoPlay loop muted playsInline 
+            <video
+              autoPlay loop muted playsInline
               style={styles.videoPlayer}
-              poster="https://via.placeholder.com/600x400/070B14/3b82f6?text=Loading+Fake+Demo" 
+              poster="https://via.placeholder.com/600x400/070B14/3b82f6?text=Loading+Fake+Demo"
             >
               {/* FIXED TYPO HERE: Changed "og.mp4" to "video/mp4" */}
               <source src="/df1.mp4" type="video/mp4" />
@@ -73,15 +73,15 @@ function Dashboard() {
           </div>
 
           {/* Real Video Player */}
-          <div className="glass-panel" style={{...styles.videoWrapper, borderTop: "4px solid var(--success)"}}>
-            <div style={{...styles.videoHeader, color: "var(--success)", backgroundColor: "rgba(16, 185, 129, 0.1)"}}>
+          <div className="glass-panel" style={{ ...styles.videoWrapper, borderTop: "4px solid var(--success)" }}>
+            <div style={{ ...styles.videoHeader, color: "var(--success)", backgroundColor: "rgba(16, 185, 129, 0.1)" }}>
               <CheckCircle size={18} />
-              <span style={{fontWeight: "700", letterSpacing: "1px"}}>ORIGINAL SOURCE</span>
+              <span style={{ fontWeight: "700", letterSpacing: "1px" }}>ORIGINAL SOURCE</span>
             </div>
-            <video 
-              autoPlay loop muted playsInline 
+            <video
+              autoPlay loop muted playsInline
               style={styles.videoPlayer}
-              poster="https://via.placeholder.com/600x400/070B14/10b981?text=Loading+Real+Demo" 
+              poster="https://via.placeholder.com/600x400/070B14/10b981?text=Loading+Real+Demo"
             >
               <source src="/og.mp4" type="video/mp4" />
               Your browser does not support the video tag.
@@ -146,21 +146,21 @@ function Dashboard() {
       <div style={styles.section}>
         <h2 style={styles.sectionTitle}>Frequently Asked Questions</h2>
         <div style={styles.faqContainer}>
-          <FAQItem 
-            question="What is deepfake detection?" 
-            answer="Deepfake detection is the process of using artificial intelligence to analyze media (video, audio, or images) to determine if it has been synthetically generated or altered by neural networks." 
+          <FAQItem
+            question="What is deepfake detection?"
+            answer="Deepfake detection is the process of using artificial intelligence to analyze media (video, audio, or images) to determine if it has been synthetically generated or altered by neural networks."
           />
-          <FAQItem 
-            question="How does DeepShieldAI's technology work?" 
-            answer="We utilize Vision Transformers (ViT), a state-of-the-art AI architecture. Instead of just looking at the whole image, ViTs break frames down into patches and analyze the structural relationships between them, spotting the tiny blending errors left by deepfake generators." 
+          <FAQItem
+            question="How does DeepShieldAI's technology work?"
+            answer="We utilize Vision Transformers (ViT), a state-of-the-art AI architecture. Instead of just looking at the whole image, ViTs break frames down into patches and analyze the structural relationships between them, spotting the tiny blending errors left by deepfake generators."
           />
-          <FAQItem 
-            question="Are my uploaded videos saved on your servers?" 
-            answer="No. All files are temporarily held in memory strictly for the duration of the analysis. Once the forensic report is generated, the file is permanently purged. We respect your privacy and do not use user uploads to train our models." 
+          <FAQItem
+            question="Are my uploaded videos saved on your servers?"
+            answer="No. All files are temporarily held in memory strictly for the duration of the analysis. Once the forensic report is generated, the file is permanently purged. We respect your privacy and do not use user uploads to train our models."
           />
-          <FAQItem 
-            question="What file formats are supported?" 
-            answer="Currently, our ViT engine supports standard video formats including MP4, AVI, and MOV, up to a maximum file size of 50MB per scan." 
+          <FAQItem
+            question="What file formats are supported?"
+            answer="Currently, our ViT engine supports standard video formats including MP4, AVI, and MOV, up to a maximum file size of 50MB per scan."
           />
         </div>
       </div>
@@ -172,7 +172,7 @@ function Dashboard() {
 // --- Styles ---
 const styles = {
   container: { padding: "60px 5% 100px", maxWidth: "1200px", margin: "0 auto", display: "flex", flexDirection: "column", alignItems: "center" },
-  
+
   // Hero
   hero: { textAlign: "center", marginBottom: "80px", maxWidth: "800px", paddingTop: "40px" },
   betaBadge: { display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 14px", backgroundColor: "rgba(56, 189, 248, 0.1)", color: "var(--accent-cyan)", borderRadius: "20px", fontSize: "0.85rem", fontWeight: "700", letterSpacing: "1px", marginBottom: "20px", border: "1px solid rgba(56, 189, 248, 0.2)" },
@@ -180,7 +180,7 @@ const styles = {
   gradientText: { background: "linear-gradient(135deg, var(--accent-cyan), var(--primary-blue))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" },
   heroSubtitle: { fontSize: "1.2rem", color: "var(--text-muted)", marginBottom: "40px", lineHeight: "1.6" },
   ctaButton: { display: "inline-block", backgroundColor: "var(--primary-blue)", color: "white", padding: "18px 36px", borderRadius: "12px", textDecoration: "none", fontWeight: "600", fontSize: "1.1rem", boxShadow: "0 4px 20px 0 rgba(59, 130, 246, 0.4)", transition: "all 0.2s ease" },
-  
+
   // Video Demo Section
   videoGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px", width: "100%", maxWidth: "1000px" },
   videoWrapper: { overflow: "hidden", display: "flex", flexDirection: "column" },
@@ -190,7 +190,7 @@ const styles = {
   // Sections
   section: { width: "100%", marginBottom: "120px", display: "flex", flexDirection: "column", alignItems: "center" },
   sectionTitle: { fontSize: "2.5rem", fontWeight: "800", marginBottom: "40px", textAlign: "center", letterSpacing: "-0.5px" },
-  
+
   // Steps Grid
   stepCard: { display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "20px" },
   stepIcon: { width: "64px", height: "64px", borderRadius: "50%", backgroundColor: "rgba(59, 130, 246, 0.1)", color: "var(--primary-blue)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px" },
