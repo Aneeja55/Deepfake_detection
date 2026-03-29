@@ -1,0 +1,12 @@
+# Hugging Face deployment steps (Run in your local terminal):
+
+# 1. Initialize local Git repo if not done
+git init
+git add .
+git commit -m "Prepare for Hugging Face deployment with consolidated Docker setup"
+
+# 2. Add Hugging Face as a remote (Replace [USERNAME] and [SPACE_NAME])
+git remote add hf https://huggingface.co/spaces/[USERNAME]/[SPACE_NAME]
+
+# 3. Force push to Hugging Face
+git push --force hf main

@@ -15,6 +15,7 @@ At its core, the system utilizes state-of-the-art Vision Transformers (ViT) to e
 ### Forensic Dashboard (Frontend)
 * **Interactive Cybersecurity Interface:** A sleek React web portal with glassmorphism design that guides users through the analysis process.
 * **Live Telemetry Charting:** Generates an interactive frame-by-frame confidence graph (via Recharts) displaying exactly when the AI detects manipulation.
+* **Client-Free Rendering:** Resolves DOM performance choke-points by consuming server-side generated Base64 JPEG frame thumbnails completely bypassing browser-side extraction delays and hardware decoder stalling.
 * **Detailed Reporting:** Generates overall confidence scores and final verdicts in a beautiful, hacker-themed dashboard.
 
 ## 🏗️ System Design
@@ -24,7 +25,8 @@ The application follows a structured pipeline:
 2. **Preprocessing Engine (Backend):** Extracts frames sequentially and uses Mediapipe (`blaze_face_short_range.tflite`) to detect and crop the face.
 3. **ViT Encoder:** The facial data is broken into patches, projected linearly, and processed through self-attention layers using PyTorch.
 4. **Classification Head:** A fully connected layer evaluates the patches and outputs a Real/Fake score for each sampled frame.
-5. **Output:** The React dashboard renders the overall prediction score, confidence gauge, and a frame-by-frame telemetry graph.
+5. **Base64 Tying:** Original sample frames are localized, optimally compressed to 180x100 JPEGs, and encoded in Base64 strings directly to the JSON response block.
+6. **Output:** The React dashboard renders the overall prediction score, confidence gauge, and an exact frame-by-frame telemetry graph with instant hover diagnosis.
 
 ## 🛠️ Technology Stack
 
@@ -93,8 +95,8 @@ This project (CSD 334 MINI PROJECT) was developed as an application-based projec
 **Development Team (Group 1):**
 * Mr. Aadhithyan Sudheesh Kumar [SCM23CS001]
 * Mr. Amishad Martin [SCM23CS043]
-* Ms. Aneeja J [SCM23CS053]
 * Ms. Anaya Wilson [SCM23CS051]
+* Ms. Aneeja J [SCM23CS053]
 
 **Project Guide:**
 * Ms. Bini Omman (Assistant Professor, Department of CSE)
